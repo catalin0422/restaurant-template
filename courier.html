@@ -58,14 +58,18 @@ function App() {
   const fetchOrders = React.useCallback(async () => {
     const { data, error } = await db.from('orders')
       .select('*')
-      .in('status', ['gata de livrare', 'în livrare'])
+      .in('status', ['în preparare', 'gata de livrare', 'în livrare'])
       .order('created_at', { ascending: false });
 
-    if (!error) {
+    console.log('Curier fetch:', { data, error });
+    if (!error && data) {
       setOrders(data || []);
-      const newGata = (data || []).filter(o => o.status === 'gata de livrare').length;
+      const newGata = data.filter(o => o.status === 'gata de livrare').length;
       if (newGata > 0) playNotification();
+    } else if (error) {
+      console.error('Eroare Supabase:', error.message);
     }
+    console.log('Curier fetch:', { data, error });
     setLoading(false);
   }, []);
 
@@ -91,6 +95,7 @@ function App() {
     setUpdating(null);
   };
 
+  const inPreparare = orders.filter(o => o.status === 'în preparare');
   const gataDeLopit = orders.filter(o => o.status === 'gata de livrare');
   const inLivrare = orders.filter(o => o.status === 'în livrare');
   const mapsUrl = (addr) => `https://maps.google.com/?q=${encodeURIComponent(addr)}`;
@@ -126,6 +131,35 @@ function App() {
 
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="max-w-2xl mx-auto w-full p-4 space-y-4">
+          {inPreparare.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-2">
+                <Icon name="clock" size={16} className="text-amber-500"/>
+                <h2 className="font-bold text-gray-800">Se prepară ({inPreparare.length})</h2>
+              </div>
+              {inPreparare.map(order => (
+                <div key={order.id} className="bg-white rounded-2xl border border-amber-200 shadow overflow-hidden">
+                  <div className="bg-amber-50 px-4 py-3 border-b border-amber-100 flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-gray-800">{order.name}</p>
+                      <p className="text-xs text-gray-500">{(order.items||[]).length} produse · {order.total} lei</p>
+                    </div>
+                    <span className="text-[11px] bg-amber-100 text-amber-700 font-semibold px-2.5 py-1 rounded-full">În preparare</span>
+                  </div>
+                  <div className="p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <Icon name="mapPin" size={14} className="text-gray-400 flex-none"/>
+                      <span className="truncate">{order.address}</span>
+                    </div>
+                    <a href={`tel:${order.phone}`} className="flex items-center gap-2 text-xs text-blue-600 font-medium">
+                      <Icon name="phone" size={14}/>{order.phone}
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {gataDeLopit.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 px-2">
@@ -209,7 +243,7 @@ function App() {
             </div>
           )}
 
-          {gataDeLopit.length === 0 && inLivrare.length === 0 && (
+          {inPreparare.length === 0 && gataDeLopit.length === 0 && inLivrare.length === 0 && (
             <div className="h-80 flex flex-col items-center justify-center text-center p-4">
               <Icon name="truck" size={48} className="text-gray-300 mb-3"/>
               <p className="text-gray-500 font-medium">Nici o comandă de livrat acum</p>
@@ -221,8 +255,8 @@ function App() {
 
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-2 justify-center">
         <div className="text-center text-sm">
-          <p className="font-bold text-gray-800">{gataDeLopit.length + inLivrare.length} comenzi</p>
-          <p className="text-xs text-gray-500">{gataDeLopit.length} gata · {inLivrare.length} în curs</p>
+          <p className="font-bold text-gray-800">{inPreparare.length + gataDeLopit.length + inLivrare.length} comenzi active</p>
+          <p className="text-xs text-gray-500">{inPreparare.length} se prepară · {gataDeLopit.length} gata · {inLivrare.length} în curs</p>
         </div>
       </div>
     </div>
