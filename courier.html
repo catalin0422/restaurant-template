@@ -58,10 +58,9 @@ function App() {
   const fetchOrders = React.useCallback(async () => {
     const { data, error } = await db.from('orders')
       .select('*')
-      .in('status', ['în preparare', 'gata de livrare', 'în livrare'])
+      .in('status', ['în preparare', 'gata de livrare', 'în livrare', 'livrată'])
       .order('created_at', { ascending: false });
 
-    console.log('Curier fetch:', { data, error });
     if (!error && data) {
       setOrders(data || []);
       const newGata = data.filter(o => o.status === 'gata de livrare').length;
@@ -69,7 +68,6 @@ function App() {
     } else if (error) {
       console.error('Eroare Supabase:', error.message);
     }
-    console.log('Curier fetch:', { data, error });
     setLoading(false);
   }, []);
 
@@ -91,13 +89,14 @@ function App() {
   const updateStatus = async (id, newStatus) => {
     setUpdating(id);
     await db.from('orders').update({ status: newStatus }).eq('id', id);
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o).filter(o => ['gata de livrare', 'în livrare'].includes(o.status)));
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
     setUpdating(null);
   };
 
   const inPreparare = orders.filter(o => o.status === 'în preparare');
   const gataDeLopit = orders.filter(o => o.status === 'gata de livrare');
-  const inLivrare = orders.filter(o => o.status === 'în livrare');
+  const inLivrare   = orders.filter(o => o.status === 'în livrare');
+  const livrate     = orders.filter(o => o.status === 'livrată');
   const mapsUrl = (addr) => `https://maps.google.com/?q=${encodeURIComponent(addr)}`;
 
   if (loading) return (
@@ -243,7 +242,28 @@ function App() {
             </div>
           )}
 
-          {inPreparare.length === 0 && gataDeLopit.length === 0 && inLivrare.length === 0 && (
+          {livrate.length > 0 && (
+            <div className="space-y-2 mt-4">
+              <div className="flex items-center gap-2 px-2">
+                <Icon name="check" size={16} className="text-green-500"/>
+                <h2 className="font-bold text-gray-800">Livrate azi ({livrate.length})</h2>
+              </div>
+              {livrate.map(order => (
+                <div key={order.id} className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center justify-between gap-3 opacity-70">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-700 truncate">{order.name}</p>
+                    <p className="text-xs text-gray-400 truncate">{order.address}</p>
+                  </div>
+                  <div className="text-right flex-none">
+                    <p className="text-sm font-bold text-green-600">{order.total} lei</p>
+                    <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-medium">Livrată</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {inPreparare.length === 0 && gataDeLopit.length === 0 && inLivrare.length === 0 && livrate.length === 0 && (
             <div className="h-80 flex flex-col items-center justify-center text-center p-4">
               <Icon name="truck" size={48} className="text-gray-300 mb-3"/>
               <p className="text-gray-500 font-medium">Nici o comandă de livrat acum</p>
@@ -255,7 +275,7 @@ function App() {
 
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-2 justify-center">
         <div className="text-center text-sm">
-          <p className="font-bold text-gray-800">{inPreparare.length + gataDeLopit.length + inLivrare.length} comenzi active</p>
+          <p className="font-bold text-gray-800">{inPreparare.length + gataDeLopit.length + inLivrare.length} active · {livrate.length} livrate</p>
           <p className="text-xs text-gray-500">{inPreparare.length} se prepară · {gataDeLopit.length} gata · {inLivrare.length} în curs</p>
         </div>
       </div>
