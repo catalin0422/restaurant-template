@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>La Forno — Admin</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
@@ -23,56 +24,53 @@
 <div id="root"></div>
 <script type="text/babel" data-presets="env,react">
 
-const API_URL = 'http://localhost:3001';
+const { createClient } = supabase;
+const db = createClient(
+  'https://qzjotkbqbxhmrngqxhpo.supabase.co',
+  'sb_publishable_SjMLlBtIqu-ilkr75Uwcqg_dDKhcYAD'
+);
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
-const I = ({d, size=18, stroke=1.75, fill="none", className=""}) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor"
-    strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
-    className={className} aria-hidden="true">
+const Ic = ({d, size=18, className=""}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
     {typeof d === 'string' ? <path d={d}/> : d}
   </svg>
 );
 const Icons = {
-  grid:       <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
-  calendar:   <><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></>,
-  pizza:      <><circle cx="12" cy="12" r="9"/><path d="M12 3v9l4.5 4.5"/><circle cx="9" cy="9" r="1" fill="currentColor"/></>,
-  bag:        <><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></>,
-  users:      <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
-  settings:   <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
-  bell:       <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
-  trending:   <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
-  check:      <polyline points="20 6 9 17 4 12"/>,
-  x:          <><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></>,
-  clock:      <><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></>,
-  phone:      <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.6.5 2.5.6a2 2 0 0 1 1.7 2z"/>,
-  menu:       <><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></>,
-  logout:     <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
-  edit:       <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
-  trash:      <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></>,
-  star:       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
-  euro:       <><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7 7 0 1 0 0 12"/></>,
-  chart:      <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
-  refresh:    <><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></>,
-  mapPin:     <><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></>,
-  truck:      <><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></>,
+  grid:     <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></>,
+  pizza:    <><circle cx="12" cy="12" r="9"/><path d="M12 3v9l4.5 4.5"/><circle cx="9" cy="9" r="1" fill="currentColor"/></>,
+  bag:      <><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></>,
+  settings: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
+  bell:     <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
+  trending: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
+  check:    <polyline points="20 6 9 17 4 12"/>,
+  x:        <><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></>,
+  clock:    <><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></>,
+  phone:    <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.6.5 2.5.6a2 2 0 0 1 1.7 2z"/>,
+  menu:     <><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></>,
+  logout:   <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
+  edit:     <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
+  star:     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
+  euro:     <><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7 7 0 1 0 0 12"/></>,
+  refresh:  <><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></>,
+  mapPin:   <><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></>,
+  truck:    <><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></>,
+  users:    <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
 };
-const Icon = ({name, size=18, className=""}) => (
-  <I d={Icons[name]} size={size} className={className}/>
-);
+const Icon = ({name, size=18, className=""}) => <Ic d={Icons[name]} size={size} className={className}/>;
 
-// ── Reservations Data ─────────────────────────────────────────────────────────
+// ── Static data ───────────────────────────────────────────────────────────────
 const RESERVATIONS = [
-  { id:1, name:'Andrei Ionescu',    phone:'+373 69 123 456', date:'2026-05-02', time:'19:00', guests:4, notes:'Aniversare', status:'confirmed' },
-  { id:2, name:'Maria Popescu',     phone:'+373 79 234 567', date:'2026-05-02', time:'19:30', guests:2, notes:'',           status:'confirmed' },
-  { id:3, name:'Vlad Rusu',         phone:'+373 60 345 678', date:'2026-05-02', time:'20:00', guests:6, notes:'Masă în exterior', status:'pending' },
-  { id:4, name:'Elena Cojocaru',    phone:'+373 68 456 789', date:'2026-05-02', time:'20:30', guests:2, notes:'',           status:'confirmed' },
-  { id:5, name:'Mihai Lupu',        phone:'+373 78 567 890', date:'2026-05-02', time:'21:00', guests:3, notes:'Alergic nuci', status:'pending' },
-  { id:6, name:'Cristina Munteanu', phone:'+373 69 678 901', date:'2026-05-03', time:'13:00', guests:5, notes:'',           status:'confirmed' },
-  { id:7, name:'Ion Botnari',       phone:'+373 79 789 012', date:'2026-05-03', time:'19:00', guests:2, notes:'Lângă fereastră', status:'pending' },
-  { id:8, name:'Ana Vrabie',        phone:'+373 60 890 123', date:'2026-05-03', time:'20:00', guests:8, notes:'Corporate', status:'confirmed' },
-  { id:9, name:'Sergiu Coban',      phone:'+373 68 901 234', date:'2026-05-04', time:'19:30', guests:2, notes:'',           status:'cancelled' },
-  { id:10,name:'Tatiana Grama',     phone:'+373 78 012 345', date:'2026-05-04', time:'20:00', guests:4, notes:'Tort aniversar', status:'confirmed' },
+  { id:1, name:'Andrei Ionescu',    phone:'+373 69 123 456', date:'2026-05-02', time:'19:00', guests:4, notes:'Aniversare',       status:'confirmed' },
+  { id:2, name:'Maria Popescu',     phone:'+373 79 234 567', date:'2026-05-02', time:'19:30', guests:2, notes:'',                 status:'confirmed' },
+  { id:3, name:'Vlad Rusu',         phone:'+373 60 345 678', date:'2026-05-02', time:'20:00', guests:6, notes:'Masă în exterior', status:'pending'   },
+  { id:4, name:'Elena Cojocaru',    phone:'+373 68 456 789', date:'2026-05-02', time:'20:30', guests:2, notes:'',                 status:'confirmed' },
+  { id:5, name:'Mihai Lupu',        phone:'+373 78 567 890', date:'2026-05-02', time:'21:00', guests:3, notes:'Alergic nuci',     status:'pending'   },
+  { id:6, name:'Cristina Munteanu', phone:'+373 69 678 901', date:'2026-05-03', time:'13:00', guests:5, notes:'',                 status:'confirmed' },
+  { id:7, name:'Ion Botnari',       phone:'+373 79 789 012', date:'2026-05-03', time:'19:00', guests:2, notes:'Lângă fereastră',  status:'pending'   },
+  { id:8, name:'Ana Vrabie',        phone:'+373 60 890 123', date:'2026-05-03', time:'20:00', guests:8, notes:'Corporate',        status:'confirmed' },
 ];
 
 const MENU_ITEMS = [
@@ -88,54 +86,46 @@ const MENU_ITEMS = [
 ];
 
 const NAV = [
-  { key:'overview',  label:'Overview',    icon:'grid'     },
-  { key:'comenzi',   label:'Comenzi',     icon:'bag'      },
-  { key:'rezervari', label:'Rezervări',   icon:'calendar' },
-  { key:'meniu',     label:'Meniu',       icon:'pizza'    },
-  { key:'setari',    label:'Setări',      icon:'settings' },
+  { key:'overview',  label:'Overview',  icon:'grid'     },
+  { key:'comenzi',   label:'Comenzi',   icon:'bag'      },
+  { key:'rezervari', label:'Rezervări', icon:'calendar' },
+  { key:'meniu',     label:'Meniu',     icon:'pizza'    },
+  { key:'setari',    label:'Setări',    icon:'settings' },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const RES_STATUS = {
-  confirmed: { label:'Confirmată', bg:'bg-green-50',  text:'text-green-700',  dot:'bg-green-500' },
-  pending:   { label:'În așteptare', bg:'bg-amber-50', text:'text-amber-700',  dot:'bg-amber-400' },
-  cancelled: { label:'Anulată',    bg:'bg-red-50',    text:'text-red-600',    dot:'bg-red-400'   },
-};
-
 const ORD_STATUS = {
-  'nouă':      { label:'Nouă',      bg:'bg-blue-50',   text:'text-blue-700',  dot:'bg-blue-500'  },
-  'în proces': { label:'În proces', bg:'bg-amber-50',  text:'text-amber-700', dot:'bg-amber-400' },
-  'livrată':   { label:'Livrată',   bg:'bg-green-50',  text:'text-green-700', dot:'bg-green-500' },
+  'nouă':      { label:'Nouă',      bg:'bg-blue-50',  text:'text-blue-700',  dot:'bg-blue-500'  },
+  'în proces': { label:'În proces', bg:'bg-amber-50', text:'text-amber-700', dot:'bg-amber-400' },
+  'livrată':   { label:'Livrată',   bg:'bg-green-50', text:'text-green-700', dot:'bg-green-500' },
 };
-
-const ResBadge = ({status}) => {
-  const s = RES_STATUS[status];
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${s.bg} ${s.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`}/>
-      {s.label}
-    </span>
-  );
+const RES_STATUS = {
+  confirmed: { label:'Confirmată',   bg:'bg-green-50', text:'text-green-700', dot:'bg-green-500' },
+  pending:   { label:'În așteptare', bg:'bg-amber-50', text:'text-amber-700', dot:'bg-amber-400' },
+  cancelled: { label:'Anulată',      bg:'bg-red-50',   text:'text-red-600',   dot:'bg-red-400'   },
 };
 
 const OrdBadge = ({status}) => {
   const s = ORD_STATUS[status] || ORD_STATUS['nouă'];
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${s.bg} ${s.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`}/>
-      {s.label}
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`}/>{s.label}
+    </span>
+  );
+};
+const ResBadge = ({status}) => {
+  const s = RES_STATUS[status] || RES_STATUS.pending;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${s.bg} ${s.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`}/>{s.label}
     </span>
   );
 };
 
-function formatDate(iso) {
-  return new Date(iso).toLocaleString('ro-RO', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-}
+const formatDate = (iso) => new Date(iso).toLocaleString('ro-RO', {
+  day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit',
+});
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
 const StatCard = ({label, value, sub, icon, color}) => (
   <div className="bg-white rounded-2xl p-5 border border-gray-100 flex items-start justify-between">
     <div>
@@ -149,58 +139,54 @@ const StatCard = ({label, value, sub, icon, color}) => (
   </div>
 );
 
-// ── Mini Bar Chart ────────────────────────────────────────────────────────────
-const BarChart = () => {
-  const data = [
-    {day:'L', v:0},  {day:'M', v:18}, {day:'Mi', v:24}, {day:'J', v:20},
-    {day:'V', v:38}, {day:'S', v:42}, {day:'D', v:30},
-  ];
-  const max = Math.max(...data.map(d=>d.v));
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-gray-100">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-[12px] font-medium text-gray-400 tracking-wide uppercase">Rezervări săptămâna aceasta</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">172 <span className="text-[13px] font-normal text-green-500">↑ 12%</span></p>
-        </div>
-        <Icon name="trending" size={18} className="text-gray-300"/>
-      </div>
-      <div className="flex items-end gap-2 h-20">
-        {data.map(d => (
-          <div key={d.day} className="flex-1 flex flex-col items-center gap-1">
-            <div className="w-full rounded-t-md transition-all" style={{ height: d.v ? `${(d.v/max)*72}px` : '4px', background: d.day==='S'||d.day==='V' ? '#c0392b' : '#f0ebe4' }}/>
-            <span className="text-[10px] text-gray-400 font-medium">{d.day}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// ── Overview Page ─────────────────────────────────────────────────────────────
-const Overview = ({setPage, orderCount}) => {
+// ── Overview ──────────────────────────────────────────────────────────────────
+function Overview({ setPage, orders }) {
   const todayR = RESERVATIONS.filter(r => r.date === '2026-05-02');
+  const newOrders = orders.filter(o => o.status === 'nouă').length;
+  const totalVenit = orders.reduce((s, o) => s + (o.total || 0), 0);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Rezervări azi"     value={todayR.length}    sub="din 48 locuri"      icon="calendar" color="bg-red-50 text-red-500"/>
-        <StatCard label="Comenzi online"    value={orderCount}       sub="prin site"          icon="bag"      color="bg-purple-50 text-purple-500"/>
-        <StatCard label="Venit azi est."    value="4.200 lei"        sub="+18% față de ieri"  icon="euro"     color="bg-green-50 text-green-600"/>
-        <StatCard label="Rating mediu"      value="4.8 ★"           sub="din 124 recenzii"   icon="star"     color="bg-amber-50 text-amber-500"/>
+        <StatCard label="Comenzi noi"    value={newOrders}          sub="necesită confirmare"  icon="bag"      color="bg-purple-50 text-purple-500"/>
+        <StatCard label="Rezervări azi"  value={todayR.length}      sub="din 48 locuri"        icon="calendar" color="bg-red-50 text-red-500"/>
+        <StatCard label="Venit total"    value={`${totalVenit} lei`} sub="toate comenzile"     icon="euro"     color="bg-green-50 text-green-600"/>
+        <StatCard label="Rating mediu"   value="4.8 ★"              sub="din 124 recenzii"    icon="star"     color="bg-amber-50 text-amber-500"/>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
-        <BarChart/>
+        {/* Ultimele comenzi */}
+        <div className="bg-white rounded-2xl border border-gray-100">
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <p className="font-semibold text-gray-900">Ultime comenzi</p>
+            <button onClick={() => setPage('comenzi')} className="text-[12px] font-medium text-purple-500 hover:text-purple-600">Vezi toate →</button>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {orders.length === 0 ? (
+              <p className="px-5 py-8 text-center text-[13px] text-gray-400">Nicio comandă încă.</p>
+            ) : orders.slice(0, 4).map(o => (
+              <div key={o.id} className="flex items-center justify-between px-5 py-3.5">
+                <div>
+                  <p className="text-[14px] font-medium text-gray-900">{o.name}</p>
+                  <p className="text-[12px] text-gray-400">{o.total} lei · {(o.items||[]).length} produse</p>
+                </div>
+                <OrdBadge status={o.status}/>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Acțiuni rapide */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
           <p className="text-[12px] font-medium text-gray-400 tracking-wide uppercase mb-4">Acțiuni rapide</p>
           <div className="space-y-2">
             {[
-              {label:'Vezi comenzile online',    icon:'bag',      color:'text-purple-500', page:'comenzi'  },
-              {label:'Gestionează rezervările',  icon:'calendar', color:'text-red-500',    page:'rezervari'},
-              {label:'Marchează produs epuizat', icon:'pizza',    color:'text-orange-500', page:'meniu'    },
-              {label:'Setări restaurant',        icon:'settings', color:'text-gray-500',   page:'setari'   },
+              { label:'Comenzi online',         icon:'bag',      color:'text-purple-500', page:'comenzi'   },
+              { label:'Gestionează rezervările', icon:'calendar', color:'text-red-500',    page:'rezervari' },
+              { label:'Marchează produs epuizat',icon:'pizza',    color:'text-orange-500', page:'meniu'     },
+              { label:'Setări restaurant',       icon:'settings', color:'text-gray-500',   page:'setari'    },
             ].map(a => (
-              <button key={a.label} onClick={()=>setPage(a.page)}
+              <button key={a.label} onClick={() => setPage(a.page)}
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left">
                 <span className={`w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center ${a.color}`}>
                   <Icon name={a.icon} size={15}/>
@@ -212,19 +198,18 @@ const Overview = ({setPage, orderCount}) => {
         </div>
       </div>
 
+      {/* Rezervări azi */}
       <div className="bg-white rounded-2xl border border-gray-100">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <p className="font-semibold text-gray-900">Rezervările de azi</p>
-          <button onClick={()=>setPage('rezervari')} className="text-[12px] font-medium text-red-500 hover:text-red-600">
-            Vezi toate →
-          </button>
+          <button onClick={() => setPage('rezervari')} className="text-[12px] font-medium text-red-500 hover:text-red-600">Vezi toate →</button>
         </div>
         <div className="divide-y divide-gray-50">
-          {todayR.slice(0,4).map(r => (
-            <div key={r.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition-colors">
+          {todayR.slice(0, 4).map(r => (
+            <div key={r.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[12px] font-semibold text-gray-500">
-                  {r.name.split(' ').map(n=>n[0]).join('')}
+                  {r.name.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div>
                   <p className="text-[14px] font-medium text-gray-900">{r.name}</p>
@@ -238,91 +223,67 @@ const Overview = ({setPage, orderCount}) => {
       </div>
     </div>
   );
-};
+}
 
-// ── Comenzi Page ──────────────────────────────────────────────────────────────
-const Comenzi = () => {
+// ── Comenzi ───────────────────────────────────────────────────────────────────
+function Comenzi() {
   const [orders, setOrders] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState('');
   const [filter, setFilter] = React.useState('all');
   const [expanded, setExpanded] = React.useState(null);
   const [updating, setUpdating] = React.useState(null);
 
-  const fetchOrders = React.useCallback(() => {
+  const fetchOrders = React.useCallback(async () => {
     setLoading(true);
-    setError('');
-    fetch(`${API_URL}/api/orders`)
-      .then(r => { if (!r.ok) throw new Error('Eroare server'); return r.json(); })
-      .then(data => { setOrders(data); setLoading(false); })
-      .catch(() => {
-        setError('Nu se poate conecta la server. Asigurați-vă că serverul rulează pe portul 3001.');
-        setLoading(false);
-      });
+    const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
+    if (!error) setOrders(data || []);
+    setLoading(false);
   }, []);
 
-  React.useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  React.useEffect(() => {
+    fetchOrders();
 
-  const updateStatus = (id, status) => {
+    // Real-time: se actualizează automat când vin comenzi noi
+    const channel = db.channel('orders-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchOrders)
+      .subscribe();
+
+    return () => db.removeChannel(channel);
+  }, [fetchOrders]);
+
+  const updateStatus = async (id, status) => {
     setUpdating(id);
-    fetch(`${API_URL}/api/orders/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    })
-      .then(r => r.json())
-      .then(updated => {
-        setOrders(prev => prev.map(o => o.id === updated.id ? updated : o));
-        setUpdating(null);
-      })
-      .catch(() => setUpdating(null));
+    const { data } = await db.from('orders').update({ status }).eq('id', id).select().single();
+    if (data) setOrders(prev => prev.map(o => o.id === data.id ? data : o));
+    setUpdating(null);
   };
 
   const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
-
-  const todayTotal = orders
-    .filter(o => o.status !== 'anulată')
-    .reduce((s, o) => s + (o.total || 0), 0);
+  const totalVenit = orders.reduce((s, o) => s + (o.total || 0), 0);
 
   const statusFilters = [
-    ['all', 'Toate', orders.length],
-    ['nouă', 'Noi', orders.filter(o=>o.status==='nouă').length],
-    ['în proces', 'În proces', orders.filter(o=>o.status==='în proces').length],
-    ['livrată', 'Livrate', orders.filter(o=>o.status==='livrată').length],
+    ['all',       'Toate',     orders.length],
+    ['nouă',      'Noi',       orders.filter(o => o.status === 'nouă').length],
+    ['în proces', 'În proces', orders.filter(o => o.status === 'în proces').length],
+    ['livrată',   'Livrate',   orders.filter(o => o.status === 'livrată').length],
   ];
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-24 gap-4">
-      <div className="w-8 h-8 rounded-full border-2 border-red-500 border-t-transparent spin"/>
-      <p className="text-[14px] text-gray-400">Se încarcă comenzile...</p>
-    </div>
-  );
-
-  if (error) return (
-    <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-      <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
-        <Icon name="x" size={24} className="text-red-400"/>
-      </div>
-      <div>
-        <p className="font-semibold text-gray-800 mb-1">Eroare de conexiune</p>
-        <p className="text-[13px] text-gray-400 max-w-sm">{error}</p>
-      </div>
-      <button onClick={fetchOrders}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-medium hover:bg-red-700 transition-colors">
-        <Icon name="refresh" size={14}/> Reîncearcă
-      </button>
+      <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent spin"/>
+      <p className="text-[14px] text-gray-400">Se încarcă comenzile din Supabase...</p>
     </div>
   );
 
   return (
     <div className="space-y-5">
-      {/* Stats row */}
+      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total comenzi', value: orders.length, color: 'bg-purple-50 text-purple-500', icon: 'bag' },
-          { label: 'Comenzi noi', value: orders.filter(o=>o.status==='nouă').length, color: 'bg-blue-50 text-blue-500', icon: 'bell' },
-          { label: 'În livrare', value: orders.filter(o=>o.status==='în proces').length, color: 'bg-amber-50 text-amber-500', icon: 'truck' },
-          { label: 'Venit total', value: `${todayTotal} lei`, color: 'bg-green-50 text-green-600', icon: 'euro' },
+          { label:'Total comenzi', value: orders.length,                                       color:'bg-purple-50 text-purple-500', icon:'bag'      },
+          { label:'Comenzi noi',   value: orders.filter(o=>o.status==='nouă').length,           color:'bg-blue-50 text-blue-500',    icon:'bell'     },
+          { label:'În livrare',    value: orders.filter(o=>o.status==='în proces').length,      color:'bg-amber-50 text-amber-500',  icon:'truck'    },
+          { label:'Venit total',   value: `${totalVenit} lei`,                                  color:'bg-green-50 text-green-600',  icon:'euro'     },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 border border-gray-100 flex items-center gap-3">
             <span className={`w-9 h-9 rounded-xl flex items-center justify-center flex-none ${s.color}`}>
@@ -336,38 +297,36 @@ const Comenzi = () => {
         ))}
       </div>
 
-      {/* Filters + Refresh */}
+      {/* Filtre */}
       <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-wrap gap-2 items-center">
         {statusFilters.map(([v, l, count]) => (
           <button key={v} onClick={() => setFilter(v)}
             className={`px-3.5 py-2 rounded-full text-[12px] font-medium transition-all flex items-center gap-1.5 ${filter===v ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
             {l}
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${filter===v ? 'bg-white/20 text-white' : 'bg-white text-gray-500'}`}>{count}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${filter===v ? 'bg-white/20' : 'bg-white text-gray-500'}`}>{count}</span>
           </button>
         ))}
-        <button onClick={fetchOrders}
-          className="ml-auto flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[12px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+        <button onClick={fetchOrders} className="ml-auto flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[12px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
           <Icon name="refresh" size={13}/> Actualizează
         </button>
       </div>
 
-      {/* Orders list */}
+      {/* Lista */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 py-16 flex flex-col items-center gap-3">
           <Icon name="bag" size={36} className="text-gray-200"/>
-          <p className="text-[14px] text-gray-400">Nicio comandă {filter !== 'all' ? `cu status "${filter}"` : ''}.</p>
+          <p className="text-[14px] text-gray-400">Nicio comandă{filter !== 'all' ? ` cu status "${filter}"` : ''}.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map(order => (
             <div key={order.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              {/* Order header */}
-              <div
-                className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
+              {/* Header comandă */}
+              <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
                 onClick={() => setExpanded(expanded === order.id ? null : order.id)}>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-[12px] font-semibold text-gray-500 flex-none">
-                    {order.name ? order.name.split(' ').map(n=>n[0]).join('').slice(0,2) : '??'}
+                    {(order.name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -375,25 +334,21 @@ const Comenzi = () => {
                       <OrdBadge status={order.status}/>
                     </div>
                     <p className="text-[12px] text-gray-400 mt-0.5">
-                      {formatDate(order.createdAt)} · {order.items?.length || 0} produse · <span className="font-medium text-gray-600">{order.total} lei</span>
+                      {formatDate(order.created_at)} · {(order.items||[]).length} produse · <span className="font-medium text-gray-600">{order.total} lei</span>
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {/* Status action buttons */}
+                  {/* Butoane status — desktop */}
                   <div className="hidden sm:flex gap-1" onClick={e => e.stopPropagation()}>
                     {order.status === 'nouă' && (
-                      <button
-                        onClick={() => updateStatus(order.id, 'în proces')}
-                        disabled={updating === order.id}
+                      <button onClick={() => updateStatus(order.id, 'în proces')} disabled={updating === order.id}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-medium hover:bg-amber-100 transition-colors disabled:opacity-50">
                         <Icon name="clock" size={12}/> În proces
                       </button>
                     )}
                     {order.status === 'în proces' && (
-                      <button
-                        onClick={() => updateStatus(order.id, 'livrată')}
-                        disabled={updating === order.id}
+                      <button onClick={() => updateStatus(order.id, 'livrată')} disabled={updating === order.id}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-[11px] font-medium hover:bg-green-100 transition-colors disabled:opacity-50">
                         <Icon name="check" size={12}/> Livrată
                       </button>
@@ -411,10 +366,9 @@ const Comenzi = () => {
                 </div>
               </div>
 
-              {/* Expanded detail */}
+              {/* Detalii expandate */}
               {expanded === order.id && (
                 <div className="border-t border-gray-100 px-5 py-4 space-y-4">
-                  {/* Customer info */}
                   <div className="grid sm:grid-cols-3 gap-4">
                     <div className="flex items-start gap-2">
                       <Icon name="phone" size={13} className="text-gray-300 mt-0.5 flex-none"/>
@@ -441,37 +395,33 @@ const Comenzi = () => {
                     )}
                   </div>
 
-                  {/* Items */}
+                  {/* Produse */}
                   <div className="rounded-xl overflow-hidden border border-gray-100">
                     <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
                       <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Produse comandate</p>
                     </div>
-                    <div className="divide-y divide-gray-50">
-                      {(order.items || []).map((item, i) => (
-                        <div key={i} className="flex items-center justify-between px-4 py-2.5">
-                          <span className="text-[13px] text-gray-700">{item.name} <span className="text-gray-400">×{item.qty}</span></span>
-                          <span className="text-[13px] font-medium text-gray-800">{item.price * item.qty} lei</span>
-                        </div>
-                      ))}
-                    </div>
+                    {(order.items || []).map((item, i) => (
+                      <div key={i} className="flex items-center justify-between px-4 py-2.5 border-b border-gray-50 last:border-0">
+                        <span className="text-[13px] text-gray-700">{item.name} <span className="text-gray-400">×{item.qty}</span></span>
+                        <span className="text-[13px] font-medium text-gray-800">{item.price * item.qty} lei</span>
+                      </div>
+                    ))}
                     <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-100">
                       <span className="text-[13px] font-semibold text-gray-700">Total</span>
                       <span className="text-[15px] font-bold text-red-600">{order.total} lei</span>
                     </div>
                   </div>
 
-                  {/* Mobile status actions */}
+                  {/* Butoane status — mobile */}
                   <div className="sm:hidden flex gap-2" onClick={e => e.stopPropagation()}>
                     {order.status === 'nouă' && (
-                      <button onClick={() => updateStatus(order.id, 'în proces')}
-                        disabled={updating === order.id}
+                      <button onClick={() => updateStatus(order.id, 'în proces')} disabled={updating === order.id}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-[12px] font-medium hover:bg-amber-100 transition-colors disabled:opacity-50">
                         <Icon name="clock" size={14}/> Marchează „În proces"
                       </button>
                     )}
                     {order.status === 'în proces' && (
-                      <button onClick={() => updateStatus(order.id, 'livrată')}
-                        disabled={updating === order.id}
+                      <button onClick={() => updateStatus(order.id, 'livrată')} disabled={updating === order.id}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-green-50 text-green-700 text-[12px] font-medium hover:bg-green-100 transition-colors disabled:opacity-50">
                         <Icon name="check" size={14}/> Marchează „Livrată"
                       </button>
@@ -485,29 +435,27 @@ const Comenzi = () => {
       )}
     </div>
   );
-};
+}
 
-// ── Rezervări Page ────────────────────────────────────────────────────────────
-const Rezervari = () => {
+// ── Rezervări ─────────────────────────────────────────────────────────────────
+function Rezervari() {
   const [filter, setFilter] = React.useState('all');
-  const [statuses, setStatuses] = React.useState(() => Object.fromEntries(RESERVATIONS.map(r=>[r.id, r.status])));
-
-  const filtered = RESERVATIONS.filter(r => filter==='all' || statuses[r.id]===filter);
-  const confirm = id => setStatuses(s=>({...s,[id]:'confirmed'}));
-  const cancel  = id => setStatuses(s=>({...s,[id]:'cancelled'}));
+  const [statuses, setStatuses] = React.useState(() => Object.fromEntries(RESERVATIONS.map(r => [r.id, r.status])));
+  const filtered = RESERVATIONS.filter(r => filter === 'all' || statuses[r.id] === filter);
+  const confirm = id => setStatuses(s => ({ ...s, [id]: 'confirmed' }));
+  const cancel  = id => setStatuses(s => ({ ...s, [id]: 'cancelled' }));
 
   return (
     <div className="space-y-5">
       <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-wrap gap-2 items-center">
-        {[['all','Toate'], ['confirmed','Confirmate'], ['pending','În așteptare'], ['cancelled','Anulate']].map(([v,l]) => (
-          <button key={v} onClick={()=>setFilter(v)}
+        {[['all','Toate'],['confirmed','Confirmate'],['pending','În așteptare'],['cancelled','Anulate']].map(([v,l]) => (
+          <button key={v} onClick={() => setFilter(v)}
             className={`px-4 py-2 rounded-full text-[12px] font-medium transition-all ${filter===v ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
             {l}
           </button>
         ))}
         <div className="ml-auto text-[12px] text-gray-400 font-medium">{filtered.length} rezervări</div>
       </div>
-
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
           <span>Client</span><span>Data & Ora</span><span>Persoane</span><span>Status</span><span>Acțiuni</span>
@@ -523,10 +471,8 @@ const Rezervari = () => {
                   <div className="mt-2 flex gap-2">
                     <ResBadge status={statuses[r.id]}/>
                     {statuses[r.id]==='pending' && (
-                      <>
-                        <button onClick={()=>confirm(r.id)} className="text-[11px] font-medium text-green-600 hover:text-green-700">✓ Confirmă</button>
-                        <button onClick={()=>cancel(r.id)}  className="text-[11px] font-medium text-red-500 hover:text-red-600">✕ Anulează</button>
-                      </>
+                      <><button onClick={()=>confirm(r.id)} className="text-[11px] font-medium text-green-600">✓ Confirmă</button>
+                      <button onClick={()=>cancel(r.id)} className="text-[11px] font-medium text-red-500">✕ Anulează</button></>
                     )}
                   </div>
                 </div>
@@ -548,17 +494,11 @@ const Rezervari = () => {
                 <div className="flex items-center gap-1">
                   {statuses[r.id]==='pending' && (
                     <>
-                      <button onClick={()=>confirm(r.id)} className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors" title="Confirmă">
-                        <Icon name="check" size={14}/>
-                      </button>
-                      <button onClick={()=>cancel(r.id)} className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors" title="Anulează">
-                        <Icon name="x" size={14}/>
-                      </button>
+                      <button onClick={()=>confirm(r.id)} className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors"><Icon name="check" size={14}/></button>
+                      <button onClick={()=>cancel(r.id)}  className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors"><Icon name="x" size={14}/></button>
                     </>
                   )}
-                  <button className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-colors" title="Sună">
-                    <Icon name="phone" size={13}/>
-                  </button>
+                  <button className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-colors"><Icon name="phone" size={13}/></button>
                 </div>
               </div>
             </div>
@@ -567,14 +507,13 @@ const Rezervari = () => {
       </div>
     </div>
   );
-};
+}
 
-// ── Meniu Page ────────────────────────────────────────────────────────────────
-const Meniu = () => {
+// ── Meniu ─────────────────────────────────────────────────────────────────────
+function Meniu() {
   const [items, setItems] = React.useState(MENU_ITEMS);
-  const toggle = name => setItems(is => is.map(i => i.name===name ? {...i, available:!i.available} : i));
-  const cats = [...new Set(items.map(i=>i.cat))];
-
+  const toggle = name => setItems(is => is.map(i => i.name === name ? { ...i, available: !i.available } : i));
+  const cats = [...new Set(items.map(i => i.cat))];
   return (
     <div className="space-y-5">
       {cats.map(cat => (
@@ -584,7 +523,7 @@ const Meniu = () => {
             <span className="text-[12px] text-gray-400">{items.filter(i=>i.cat===cat).length} preparate</span>
           </div>
           <div className="divide-y divide-gray-50">
-            {items.filter(i=>i.cat===cat).map(item => (
+            {items.filter(i => i.cat === cat).map(item => (
               <div key={item.name} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-400' : 'bg-gray-300'}`}/>
@@ -595,8 +534,7 @@ const Meniu = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   {!item.available && <span className="text-[11px] bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-medium">Epuizat</span>}
-                  <button onClick={()=>toggle(item.name)}
-                    className={`relative w-10 h-5 rounded-full transition-colors ${item.available ? 'bg-green-400' : 'bg-gray-200'}`}>
+                  <button onClick={() => toggle(item.name)} className={`relative w-10 h-5 rounded-full transition-colors ${item.available ? 'bg-green-400' : 'bg-gray-200'}`}>
                     <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${item.available ? 'left-5' : 'left-0.5'}`}/>
                   </button>
                 </div>
@@ -607,106 +545,86 @@ const Meniu = () => {
       ))}
     </div>
   );
-};
+}
 
-// ── Setări Page ───────────────────────────────────────────────────────────────
-const Setari = () => (
-  <div className="space-y-5 max-w-xl">
-    {[
-      { label:'Restaurant', fields:[
-        {l:'Nume restaurant', v:'La Forno'},
-        {l:'Telefon', v:'+373 22 456 789'},
-        {l:'Email', v:'contact@laforno.md'},
-        {l:'Adresă', v:'Strada Ștefan cel Mare 75, Chișinău'},
-      ]},
-      { label:'Program', fields:[
-        {l:'Marți – Joi', v:'12:00 – 23:00'},
-        {l:'Vineri – Sâmbătă', v:'12:00 – 00:00'},
-        {l:'Duminică', v:'12:00 – 22:00'},
-        {l:'Luni', v:'Închis'},
-      ]},
-      { label:'Comenzi online', fields:[
-        {l:'URL server', v:'http://localhost:3001'},
-        {l:'Timp estimat livrare (min)', v:'45'},
-        {l:'Comandă minimă (lei)', v:'0'},
-      ]},
-    ].map(section => (
-      <div key={section.label} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-gray-100">
-          <p className="font-semibold text-gray-900">{section.label}</p>
+// ── Setări ────────────────────────────────────────────────────────────────────
+function Setari() {
+  return (
+    <div className="space-y-5 max-w-xl">
+      {[
+        { label:'Restaurant', fields:[
+          {l:'Nume restaurant', v:'La Forno'},
+          {l:'Telefon', v:'+373 22 456 789'},
+          {l:'Email', v:'contact@laforno.md'},
+          {l:'Adresă', v:'Strada Ștefan cel Mare 75, Chișinău'},
+        ]},
+        { label:'Program', fields:[
+          {l:'Marți – Joi', v:'12:00 – 23:00'},
+          {l:'Vineri – Sâmbătă', v:'12:00 – 00:00'},
+          {l:'Duminică', v:'12:00 – 22:00'},
+          {l:'Luni', v:'Închis'},
+        ]},
+      ].map(section => (
+        <div key={section.label} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-gray-100">
+            <p className="font-semibold text-gray-900">{section.label}</p>
+          </div>
+          <div className="p-5 space-y-4">
+            {section.fields.map(f => (
+              <div key={f.l}>
+                <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">{f.l}</label>
+                <input defaultValue={f.v} className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-[14px] text-gray-800 focus:outline-none focus:border-red-400 transition-colors bg-gray-50"/>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="p-5 space-y-4">
-          {section.fields.map(f => (
-            <div key={f.l}>
-              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">{f.l}</label>
-              <input defaultValue={f.v} className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-[14px] text-gray-800 focus:outline-none focus:border-red-400 transition-colors bg-gray-50"/>
-            </div>
-          ))}
-        </div>
-      </div>
-    ))}
-    <button className="px-6 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-medium hover:bg-red-700 transition-colors">
-      Salvează modificările
-    </button>
-  </div>
-);
+      ))}
+      <button className="px-6 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-medium hover:bg-red-700 transition-colors">Salvează modificările</button>
+    </div>
+  );
+}
 
 // ── App ───────────────────────────────────────────────────────────────────────
 function App() {
   const [page, setPage] = React.useState('overview');
   const [sideOpen, setSideOpen] = React.useState(false);
-  const [orderCount, setOrderCount] = React.useState(0);
+  const [orders, setOrders] = React.useState([]);
 
-  const pending = RESERVATIONS.filter(r=>r.status==='pending').length;
+  const pendingRes = RESERVATIONS.filter(r => r.status === 'pending').length;
+  const newOrders  = orders.filter(o => o.status === 'nouă').length;
 
-  // Fetch order count for badges
+  // Încarcă comenzile pentru badge și overview
   React.useEffect(() => {
-    fetch(`${API_URL}/api/orders`)
-      .then(r => r.json())
-      .then(data => setOrderCount(Array.isArray(data) ? data.filter(o=>o.status==='nouă').length : 0))
-      .catch(() => {});
-  }, [page]);
+    db.from('orders').select('*').order('created_at', { ascending: false })
+      .then(({ data }) => setOrders(data || []));
 
-  const pages = {
-    overview:  <Overview setPage={setPage} orderCount={orderCount}/>,
-    comenzi:   <Comenzi/>,
-    rezervari: <Rezervari/>,
-    meniu:     <Meniu/>,
-    setari:    <Setari/>,
-  };
-  const titles = {
-    overview:  'Bună ziua! 👋',
-    comenzi:   'Comenzi Online',
-    rezervari: 'Rezervări',
-    meniu:     'Gestionare Meniu',
-    setari:    'Setări',
-  };
-  const subs = {
-    overview:  'Iată ce se întâmplă azi la La Forno.',
-    comenzi:   'Gestionați și procesați comenzile online.',
-    rezervari: 'Gestionați și confirmați rezervările.',
-    meniu:     'Activați sau dezactivați preparate.',
-    setari:    'Configurați restaurantul.',
-  };
+    const channel = db.channel('app-orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        db.from('orders').select('*').order('created_at', { ascending: false })
+          .then(({ data }) => setOrders(data || []));
+      })
+      .subscribe();
 
-  const Sidebar = ({mobile=false}) => (
+    return () => db.removeChannel(channel);
+  }, []);
+
+  const titles = { overview:'Bună ziua! 👋', comenzi:'Comenzi Online', rezervari:'Rezervări', meniu:'Gestionare Meniu', setari:'Setări' };
+  const subs   = { overview:'Ce se întâmplă azi la La Forno.', comenzi:'Comenzi primite prin site — actualizare în timp real.', rezervari:'Gestionați și confirmați rezervările.', meniu:'Activați sau dezactivați preparate.', setari:'Configurați restaurantul.' };
+
+  const Sidebar = ({ mobile = false }) => (
     <aside className={`${mobile ? 'w-64' : 'hidden lg:flex w-56 xl:w-60'} flex-col bg-white border-r border-gray-100 min-h-screen sticky top-0 h-screen`}>
       <div className="p-5 border-b border-gray-100">
-        <span className="font-display text-xl font-medium" style={{color:'#c0392b', fontFamily:"'Playfair Display', serif"}}>La Forno</span>
+        <span className="text-xl font-medium" style={{ color:'#c0392b', fontFamily:"'Playfair Display',serif" }}>La Forno</span>
         <p className="text-[11px] text-gray-400 mt-0.5">Panou de administrare</p>
       </div>
       <nav className="flex-1 p-3 space-y-0.5">
         {NAV.map(n => (
-          <button key={n.key} onClick={()=>{setPage(n.key); setSideOpen(false);}}
+          <button key={n.key} onClick={() => { setPage(n.key); setSideOpen(false); }}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${page===n.key ? 'bg-red-50 text-red-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}`}>
             <Icon name={n.icon} size={16}/>
             {n.label}
-            {n.key==='rezervari' && pending>0 && (
-              <span className="ml-auto text-[10px] bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center font-semibold">{pending}</span>
-            )}
-            {n.key==='comenzi' && orderCount>0 && (
-              <span className="ml-auto text-[10px] bg-purple-500 text-white rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center font-semibold">{orderCount}</span>
-            )}
+            {n.key === 'comenzi'   && newOrders  > 0 && <span className="ml-auto text-[10px] bg-purple-500 text-white rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center font-semibold">{newOrders}</span>}
+            {n.key === 'rezervari' && pendingRes > 0 && <span className="ml-auto text-[10px] bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center font-semibold">{pendingRes}</span>}
           </button>
         ))}
       </nav>
@@ -723,40 +641,42 @@ function App() {
     </aside>
   );
 
+  const pages = {
+    overview:  <Overview setPage={setPage} orders={orders}/>,
+    comenzi:   <Comenzi/>,
+    rezervari: <Rezervari/>,
+    meniu:     <Meniu/>,
+    setari:    <Setari/>,
+  };
+
   return (
     <div className="flex min-h-screen">
       <Sidebar/>
-
       {sideOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/40" onClick={()=>setSideOpen(false)}/>
-          <div className="relative z-10">
-            <Sidebar mobile/>
-          </div>
+          <div className="fixed inset-0 bg-black/40" onClick={() => setSideOpen(false)}/>
+          <div className="relative z-10"><Sidebar mobile/></div>
         </div>
       )}
-
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-gray-100 px-5 md:px-8 h-14 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <button onClick={()=>setSideOpen(true)} className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100">
+            <button onClick={() => setSideOpen(true)} className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100">
               <Icon name="menu" size={18} className="text-gray-600"/>
             </button>
             <p className="text-[14px] font-semibold text-gray-800 hidden sm:block">{titles[page]}</p>
           </div>
           <div className="flex items-center gap-2">
-            <a href="index.html" target="_blank"
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+            <a href="index.html" target="_blank" className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
               <Icon name="edit" size={13}/> Vezi site
             </a>
             <button className="relative w-9 h-9 rounded-xl hover:bg-gray-100 flex items-center justify-center transition-colors">
               <Icon name="bell" size={17} className="text-gray-500"/>
-              {(pending > 0 || orderCount > 0) && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500"/>}
+              {(newOrders > 0 || pendingRes > 0) && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500"/>}
             </button>
             <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-[11px] font-bold text-red-600">DC</div>
           </div>
         </header>
-
         <main className="flex-1 p-5 md:p-8 overflow-auto">
           <div className="mb-6 hidden sm:block">
             <h1 className="text-xl font-semibold text-gray-900">{titles[page]}</h1>
