@@ -304,7 +304,7 @@ function MenuCard({ item, inCart, onAdd }) {
       </div>
       <div className="p-5 flex flex-col flex-1">
         <h3 className="font-display text-xl" style={{ color: 'var(--text)' }}>{item.name}</h3>
-        <p className="mt-1.5 text-[13px] leading-relaxed flex-1" style={{ color: 'var(--muted)' }}>{item.desc}</p>
+        <p className="mt-1.5 text-[13px] leading-relaxed flex-1" style={{ color: 'var(--muted)' }}>{item.description || item.desc}</p>
         <div className="mt-4 flex items-center justify-between gap-3">
           <span className="font-display text-2xl" style={{ color: 'var(--red)' }}>
             {item.price} <span className="text-[13px] font-normal" style={{ color: 'var(--muted)' }}>lei</span>
@@ -322,9 +322,41 @@ function MenuCard({ item, inCart, onAdd }) {
 
 // ---------- Menu Section ----------
 function MenuSection({ cart, onAddToCart }) {
-  const cats = Object.keys(MENU);
-  const [active, setActive] = React.useState(cats[0]);
+  const [menuData, setMenuData] = React.useState(null);
+  const [active, setActive] = React.useState(null);
   const getQty = (name) => (cart.find(i => i.name === name) || {}).qty || 0;
+
+  React.useEffect(() => {
+    db.from('menu_items')
+      .select('*')
+      .eq('available', true)
+      .order('sort_order')
+      .then(({ data, error }) => {
+        if (error || !data?.length) {
+          // fallback la datele statice
+          const grouped = {};
+          Object.entries(MENU).forEach(([cat, items]) => { grouped[cat] = items; });
+          setMenuData(grouped);
+          setActive(Object.keys(grouped)[0]);
+        } else {
+          const grouped = {};
+          data.forEach(item => {
+            if (!grouped[item.category]) grouped[item.category] = [];
+            grouped[item.category].push(item);
+          });
+          setMenuData(grouped);
+          setActive(Object.keys(grouped)[0]);
+        }
+      });
+  }, []);
+
+  if (!menuData) return (
+    <section id="meniu" className="py-16 md:py-32 flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-t-transparent" style={{ borderColor: 'var(--red)', animation: 'spin 1s linear infinite' }}/>
+    </section>
+  );
+
+  const cats = Object.keys(menuData);
 
   return (
     <section id="meniu" className="py-16 md:py-32 px-5 md:px-8 bg-white">
@@ -345,7 +377,7 @@ function MenuSection({ cart, onAddToCart }) {
           ))}
         </div>
         <div className="reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MENU[active].map(item => (
+          {(menuData[active] || []).map(item => (
             <MenuCard key={item.name} item={item} inCart={getQty(item.name)} onAdd={onAddToCart} />
           ))}
         </div>
@@ -402,9 +434,29 @@ function Field({ label, children }) {
 function Reservation() {
   const [form, setForm] = React.useState({ name: '', date: '', time: '19:30', guests: '2', phone: '', notes: '' });
   const [submitted, setSubmitted] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
-  const submit = e => { e.preventDefault(); setSubmitted(true); setTimeout(() => setSubmitted(false), 5000); };
   const today = new Date().toISOString().slice(0, 10);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    const { error: err } = await db.from('reservations').insert([{
+      name: form.name,
+      phone: form.phone,
+      date: form.date,
+      time: form.time,
+      guests: form.guests,
+      notes: form.notes,
+    }]);
+    setLoading(false);
+    if (err) { setError('Eroare la trimitere. Încearcă din nou.'); return; }
+    setSubmitted(true);
+    setForm({ name: '', date: '', time: '19:30', guests: '2', phone: '', notes: '' });
+    setTimeout(() => setSubmitted(false), 6000);
+  };
   return (
     <section id="rezervare" className="py-16 md:py-32 px-5 md:px-8 bg-white">
       <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-20 items-start">

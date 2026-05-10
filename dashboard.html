@@ -58,33 +58,16 @@ const Icons = {
   mapPin:   <><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></>,
   truck:    <><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></>,
   users:    <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+  plus:     <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+  trash:    <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></>,
+  lock:     <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+  eye:      <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
+  eyeOff:   <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>,
+  image:    <><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></>,
 };
 const Icon = ({name, size=18, className=""}) => <Ic d={Icons[name]} size={size} className={className}/>;
 
-// ── Static data ───────────────────────────────────────────────────────────────
-const RESERVATIONS = [
-  { id:1, name:'Andrei Ionescu',    phone:'+373 69 123 456', date:'2026-05-02', time:'19:00', guests:4, notes:'Aniversare',       status:'confirmed' },
-  { id:2, name:'Maria Popescu',     phone:'+373 79 234 567', date:'2026-05-02', time:'19:30', guests:2, notes:'',                 status:'confirmed' },
-  { id:3, name:'Vlad Rusu',         phone:'+373 60 345 678', date:'2026-05-02', time:'20:00', guests:6, notes:'Masă în exterior', status:'pending'   },
-  { id:4, name:'Elena Cojocaru',    phone:'+373 68 456 789', date:'2026-05-02', time:'20:30', guests:2, notes:'',                 status:'confirmed' },
-  { id:5, name:'Mihai Lupu',        phone:'+373 78 567 890', date:'2026-05-02', time:'21:00', guests:3, notes:'Alergic nuci',     status:'pending'   },
-  { id:6, name:'Cristina Munteanu', phone:'+373 69 678 901', date:'2026-05-03', time:'13:00', guests:5, notes:'',                 status:'confirmed' },
-  { id:7, name:'Ion Botnari',       phone:'+373 79 789 012', date:'2026-05-03', time:'19:00', guests:2, notes:'Lângă fereastră',  status:'pending'   },
-  { id:8, name:'Ana Vrabie',        phone:'+373 60 890 123', date:'2026-05-03', time:'20:00', guests:8, notes:'Corporate',        status:'confirmed' },
-];
-
-const MENU_ITEMS = [
-  { name:'Margherita',          cat:'Pizza',    price:79,  available:true  },
-  { name:'Diavola',             cat:'Pizza',    price:89,  available:true  },
-  { name:'Quattro Stagioni',    cat:'Pizza',    price:95,  available:true  },
-  { name:'Prosciutto e Rucola', cat:'Pizza',    price:105, available:false },
-  { name:'Tartufo Bianco',      cat:'Pizza',    price:119, available:true  },
-  { name:'Cacio e Pepe',        cat:'Paste',    price:72,  available:true  },
-  { name:'Carbonara',           cat:'Paste',    price:78,  available:true  },
-  { name:'Bruschette Trio',     cat:'Antipasti',price:48,  available:true  },
-  { name:'Tiramisù della Casa', cat:'Deserturi',price:38,  available:true  },
-];
-
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const NAV = [
   { key:'overview',  label:'Overview',  icon:'grid'     },
   { key:'comenzi',   label:'Comenzi',   icon:'bag'      },
@@ -93,7 +76,6 @@ const NAV = [
   { key:'setari',    label:'Setări',    icon:'settings' },
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const ORD_STATUS = {
   'nouă':      { label:'Nouă',      bg:'bg-blue-50',  text:'text-blue-700',  dot:'bg-blue-500'  },
   'în proces': { label:'În proces', bg:'bg-amber-50', text:'text-amber-700', dot:'bg-amber-400' },
@@ -139,23 +121,93 @@ const StatCard = ({label, value, sub, icon, color}) => (
   </div>
 );
 
+// ── Login ─────────────────────────────────────────────────────────────────────
+function Login({ onLogin }) {
+  const [email, setEmail] = React.useState('');
+  const [pass, setPass]   = React.useState('');
+  const [showPass, setShowPass] = React.useState(false);
+  const [loading, setLoading]   = React.useState(false);
+  const [error, setError]       = React.useState('');
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const { data, error: err } = await db.auth.signInWithPassword({ email, password: pass });
+    setLoading(false);
+    if (err) { setError('Email sau parolă incorectă.'); return; }
+    onLogin(data.session);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4" style={{background:'#f5f5f0'}}>
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <span className="text-3xl font-medium" style={{color:'#c0392b', fontFamily:"'Playfair Display',serif"}}>La Forno</span>
+          <p className="text-[13px] text-gray-400 mt-1">Panou de administrare</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-red-50 text-red-500 mx-auto mb-5">
+            <Icon name="lock" size={20}/>
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900 text-center mb-5">Autentificare</h2>
+          {error && (
+            <div className="mb-4 px-3.5 py-3 rounded-xl bg-red-50 text-red-600 text-[13px] flex items-center gap-2">
+              <Icon name="x" size={14}/>
+              {error}
+            </div>
+          )}
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">Email</label>
+              <input
+                type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="admin@laforno.md"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[14px] text-gray-800 bg-gray-50 focus:outline-none focus:border-red-400 focus:bg-white transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">Parolă</label>
+              <div className="relative">
+                <input
+                  type={showPass ? 'text' : 'password'} required value={pass} onChange={e => setPass(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[14px] text-gray-800 bg-gray-50 focus:outline-none focus:border-red-400 focus:bg-white transition-colors pr-10"
+                />
+                <button type="button" onClick={() => setShowPass(s => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  <Icon name={showPass ? 'eyeOff' : 'eye'} size={15}/>
+                </button>
+              </div>
+            </div>
+            <button type="submit" disabled={loading}
+              className="w-full py-2.5 rounded-xl bg-red-600 text-white text-[14px] font-medium hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-2">
+              {loading ? <><div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent spin"/> Se autentifică...</> : 'Intră în cont'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Overview ──────────────────────────────────────────────────────────────────
-function Overview({ setPage, orders }) {
-  const todayR = RESERVATIONS.filter(r => r.date === '2026-05-02');
+function Overview({ setPage, orders, reservations }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const todayR = reservations.filter(r => r.date === today);
   const newOrders = orders.filter(o => o.status === 'nouă').length;
   const totalVenit = orders.reduce((s, o) => s + (o.total || 0), 0);
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Comenzi noi"    value={newOrders}          sub="necesită confirmare"  icon="bag"      color="bg-purple-50 text-purple-500"/>
-        <StatCard label="Rezervări azi"  value={todayR.length}      sub="din 48 locuri"        icon="calendar" color="bg-red-50 text-red-500"/>
-        <StatCard label="Venit total"    value={`${totalVenit} lei`} sub="toate comenzile"     icon="euro"     color="bg-green-50 text-green-600"/>
-        <StatCard label="Rating mediu"   value="4.8 ★"              sub="din 124 recenzii"    icon="star"     color="bg-amber-50 text-amber-500"/>
+        <StatCard label="Comenzi noi"    value={newOrders}           sub="necesită confirmare"  icon="bag"      color="bg-purple-50 text-purple-500"/>
+        <StatCard label="Rezervări azi"  value={todayR.length}       sub="din 48 locuri"        icon="calendar" color="bg-red-50 text-red-500"/>
+        <StatCard label="Venit total"    value={`${totalVenit} lei`} sub="toate comenzile"      icon="euro"     color="bg-green-50 text-green-600"/>
+        <StatCard label="Rating mediu"   value="4.8 ★"               sub="din 124 recenzii"    icon="star"     color="bg-amber-50 text-amber-500"/>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
-        {/* Ultimele comenzi */}
         <div className="bg-white rounded-2xl border border-gray-100">
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
             <p className="font-semibold text-gray-900">Ultime comenzi</p>
@@ -176,15 +228,14 @@ function Overview({ setPage, orders }) {
           </div>
         </div>
 
-        {/* Acțiuni rapide */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
           <p className="text-[12px] font-medium text-gray-400 tracking-wide uppercase mb-4">Acțiuni rapide</p>
           <div className="space-y-2">
             {[
-              { label:'Comenzi online',         icon:'bag',      color:'text-purple-500', page:'comenzi'   },
-              { label:'Gestionează rezervările', icon:'calendar', color:'text-red-500',    page:'rezervari' },
-              { label:'Marchează produs epuizat',icon:'pizza',    color:'text-orange-500', page:'meniu'     },
-              { label:'Setări restaurant',       icon:'settings', color:'text-gray-500',   page:'setari'    },
+              { label:'Comenzi online',          icon:'bag',      color:'text-purple-500', page:'comenzi'   },
+              { label:'Gestionează rezervările',  icon:'calendar', color:'text-red-500',    page:'rezervari' },
+              { label:'Editează meniul',          icon:'pizza',    color:'text-orange-500', page:'meniu'     },
+              { label:'Setări restaurant',        icon:'settings', color:'text-gray-500',   page:'setari'    },
             ].map(a => (
               <button key={a.label} onClick={() => setPage(a.page)}
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left">
@@ -198,14 +249,15 @@ function Overview({ setPage, orders }) {
         </div>
       </div>
 
-      {/* Rezervări azi */}
       <div className="bg-white rounded-2xl border border-gray-100">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <p className="font-semibold text-gray-900">Rezervările de azi</p>
           <button onClick={() => setPage('rezervari')} className="text-[12px] font-medium text-red-500 hover:text-red-600">Vezi toate →</button>
         </div>
         <div className="divide-y divide-gray-50">
-          {todayR.slice(0, 4).map(r => (
+          {todayR.length === 0 ? (
+            <p className="px-5 py-8 text-center text-[13px] text-gray-400">Nicio rezervare pentru azi.</p>
+          ) : todayR.slice(0, 4).map(r => (
             <div key={r.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[12px] font-semibold text-gray-500">
@@ -216,7 +268,7 @@ function Overview({ setPage, orders }) {
                   <p className="text-[12px] text-gray-400">{r.time} · {r.guests} pers{r.notes ? ` · ${r.notes}` : ''}</p>
                 </div>
               </div>
-              <ResBadge status={r.status}/>
+              <ResBadge status={r.status || 'pending'}/>
             </div>
           ))}
         </div>
@@ -227,9 +279,9 @@ function Overview({ setPage, orders }) {
 
 // ── Comenzi ───────────────────────────────────────────────────────────────────
 function Comenzi() {
-  const [orders, setOrders] = React.useState([]);
+  const [orders, setOrders]   = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [filter, setFilter] = React.useState('all');
+  const [filter, setFilter]   = React.useState('all');
   const [expanded, setExpanded] = React.useState(null);
   const [updating, setUpdating] = React.useState(null);
 
@@ -242,12 +294,9 @@ function Comenzi() {
 
   React.useEffect(() => {
     fetchOrders();
-
-    // Real-time: se actualizează automat când vin comenzi noi
     const channel = db.channel('orders-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchOrders)
       .subscribe();
-
     return () => db.removeChannel(channel);
   }, [fetchOrders]);
 
@@ -271,19 +320,18 @@ function Comenzi() {
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-24 gap-4">
       <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent spin"/>
-      <p className="text-[14px] text-gray-400">Se încarcă comenzile din Supabase...</p>
+      <p className="text-[14px] text-gray-400">Se încarcă comenzile...</p>
     </div>
   );
 
   return (
     <div className="space-y-5">
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label:'Total comenzi', value: orders.length,                                       color:'bg-purple-50 text-purple-500', icon:'bag'      },
-          { label:'Comenzi noi',   value: orders.filter(o=>o.status==='nouă').length,           color:'bg-blue-50 text-blue-500',    icon:'bell'     },
-          { label:'În livrare',    value: orders.filter(o=>o.status==='în proces').length,      color:'bg-amber-50 text-amber-500',  icon:'truck'    },
-          { label:'Venit total',   value: `${totalVenit} lei`,                                  color:'bg-green-50 text-green-600',  icon:'euro'     },
+          { label:'Total comenzi', value: orders.length,                                  color:'bg-purple-50 text-purple-500', icon:'bag'   },
+          { label:'Comenzi noi',   value: orders.filter(o=>o.status==='nouă').length,      color:'bg-blue-50 text-blue-500',    icon:'bell'  },
+          { label:'În livrare',    value: orders.filter(o=>o.status==='în proces').length, color:'bg-amber-50 text-amber-500',  icon:'truck' },
+          { label:'Venit total',   value: `${totalVenit} lei`,                             color:'bg-green-50 text-green-600',  icon:'euro'  },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 border border-gray-100 flex items-center gap-3">
             <span className={`w-9 h-9 rounded-xl flex items-center justify-center flex-none ${s.color}`}>
@@ -297,7 +345,6 @@ function Comenzi() {
         ))}
       </div>
 
-      {/* Filtre */}
       <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-wrap gap-2 items-center">
         {statusFilters.map(([v, l, count]) => (
           <button key={v} onClick={() => setFilter(v)}
@@ -311,7 +358,6 @@ function Comenzi() {
         </button>
       </div>
 
-      {/* Lista */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 py-16 flex flex-col items-center gap-3">
           <Icon name="bag" size={36} className="text-gray-200"/>
@@ -321,7 +367,6 @@ function Comenzi() {
         <div className="space-y-3">
           {filtered.map(order => (
             <div key={order.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              {/* Header comandă */}
               <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
                 onClick={() => setExpanded(expanded === order.id ? null : order.id)}>
                 <div className="flex items-center gap-3">
@@ -339,7 +384,6 @@ function Comenzi() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {/* Butoane status — desktop */}
                   <div className="hidden sm:flex gap-1" onClick={e => e.stopPropagation()}>
                     {order.status === 'nouă' && (
                       <button onClick={() => updateStatus(order.id, 'în proces')} disabled={updating === order.id}
@@ -366,7 +410,6 @@ function Comenzi() {
                 </div>
               </div>
 
-              {/* Detalii expandate */}
               {expanded === order.id && (
                 <div className="border-t border-gray-100 px-5 py-4 space-y-4">
                   <div className="grid sm:grid-cols-3 gap-4">
@@ -394,8 +437,6 @@ function Comenzi() {
                       </div>
                     )}
                   </div>
-
-                  {/* Produse */}
                   <div className="rounded-xl overflow-hidden border border-gray-100">
                     <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
                       <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Produse comandate</p>
@@ -411,8 +452,6 @@ function Comenzi() {
                       <span className="text-[15px] font-bold text-red-600">{order.total} lei</span>
                     </div>
                   </div>
-
-                  {/* Butoane status — mobile */}
                   <div className="sm:hidden flex gap-2" onClick={e => e.stopPropagation()}>
                     {order.status === 'nouă' && (
                       <button onClick={() => updateStatus(order.id, 'în proces')} disabled={updating === order.id}
@@ -439,11 +478,41 @@ function Comenzi() {
 
 // ── Rezervări ─────────────────────────────────────────────────────────────────
 function Rezervari() {
-  const [filter, setFilter] = React.useState('all');
-  const [statuses, setStatuses] = React.useState(() => Object.fromEntries(RESERVATIONS.map(r => [r.id, r.status])));
-  const filtered = RESERVATIONS.filter(r => filter === 'all' || statuses[r.id] === filter);
-  const confirm = id => setStatuses(s => ({ ...s, [id]: 'confirmed' }));
-  const cancel  = id => setStatuses(s => ({ ...s, [id]: 'cancelled' }));
+  const [reservations, setReservations] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [filter, setFilter]   = React.useState('all');
+  const [updating, setUpdating] = React.useState(null);
+
+  const fetchReservations = React.useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await db.from('reservations').select('*').order('date').order('time');
+    if (!error) setReservations(data || []);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    fetchReservations();
+    const channel = db.channel('reservations-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, fetchReservations)
+      .subscribe();
+    return () => db.removeChannel(channel);
+  }, [fetchReservations]);
+
+  const updateStatus = async (id, status) => {
+    setUpdating(id);
+    const { data } = await db.from('reservations').update({ status }).eq('id', id).select().single();
+    if (data) setReservations(prev => prev.map(r => r.id === data.id ? data : r));
+    setUpdating(null);
+  };
+
+  const filtered = filter === 'all' ? reservations : reservations.filter(r => (r.status || 'pending') === filter);
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <div className="w-8 h-8 rounded-full border-2 border-red-500 border-t-transparent spin"/>
+      <p className="text-[14px] text-gray-400">Se încarcă rezervările...</p>
+    </div>
+  );
 
   return (
     <div className="space-y-5">
@@ -454,95 +523,311 @@ function Rezervari() {
             {l}
           </button>
         ))}
-        <div className="ml-auto text-[12px] text-gray-400 font-medium">{filtered.length} rezervări</div>
-      </div>
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
-          <span>Client</span><span>Data & Ora</span><span>Persoane</span><span>Status</span><span>Acțiuni</span>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-[12px] text-gray-400 font-medium">{filtered.length} rezervări</span>
+          <button onClick={fetchReservations} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[12px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+            <Icon name="refresh" size={13}/>
+          </button>
         </div>
-        <div className="divide-y divide-gray-50">
-          {filtered.map(r => (
-            <div key={r.id} className="px-5 py-4 hover:bg-gray-50/50 transition-colors">
-              <div className="md:hidden flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[14px] font-semibold text-gray-900">{r.name}</p>
-                  <p className="text-[12px] text-gray-400 mt-0.5">{r.date} · {r.time} · {r.guests} pers.</p>
-                  {r.notes && <p className="text-[11px] text-gray-400 mt-0.5 italic">{r.notes}</p>}
-                  <div className="mt-2 flex gap-2">
-                    <ResBadge status={statuses[r.id]}/>
-                    {statuses[r.id]==='pending' && (
-                      <><button onClick={()=>confirm(r.id)} className="text-[11px] font-medium text-green-600">✓ Confirmă</button>
-                      <button onClick={()=>cancel(r.id)} className="text-[11px] font-medium text-red-500">✕ Anulează</button></>
-                    )}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 py-16 flex flex-col items-center gap-3">
+          <Icon name="calendar" size={36} className="text-gray-200"/>
+          <p className="text-[14px] text-gray-400">Nicio rezervare{filter !== 'all' ? ` cu statusul selectat` : ''}.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+            <span>Client</span><span>Data &amp; Ora</span><span>Persoane</span><span>Status</span><span>Acțiuni</span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {filtered.map(r => {
+              const status = r.status || 'pending';
+              return (
+                <div key={r.id} className="px-5 py-4 hover:bg-gray-50/50 transition-colors">
+                  <div className="md:hidden flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[14px] font-semibold text-gray-900">{r.name}</p>
+                      <p className="text-[12px] text-gray-400 mt-0.5">{r.date} · {r.time} · {r.guests} pers.</p>
+                      {r.notes && <p className="text-[11px] text-gray-400 mt-0.5 italic">{r.notes}</p>}
+                      <div className="mt-2 flex gap-2 flex-wrap items-center">
+                        <ResBadge status={status}/>
+                        {status === 'pending' && (
+                          <>
+                            <button disabled={updating === r.id} onClick={() => updateStatus(r.id, 'confirmed')} className="text-[11px] font-medium text-green-600 disabled:opacity-50">✓ Confirmă</button>
+                            <button disabled={updating === r.id} onClick={() => updateStatus(r.id, 'cancelled')} className="text-[11px] font-medium text-red-500 disabled:opacity-50">✕ Anulează</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 items-center">
+                    <div>
+                      <p className="text-[14px] font-medium text-gray-900">{r.name}</p>
+                      <p className="text-[12px] text-gray-400">{r.phone}{r.notes ? ` · ${r.notes}` : ''}</p>
+                    </div>
+                    <div>
+                      <p className="text-[14px] text-gray-700">{r.date}</p>
+                      <p className="text-[12px] text-gray-400">{r.time}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Icon name="users" size={13} className="text-gray-300"/>
+                      <span className="text-[14px] text-gray-700">{r.guests} persoane</span>
+                    </div>
+                    <ResBadge status={status}/>
+                    <div className="flex items-center gap-1">
+                      {status === 'pending' && (
+                        <>
+                          <button disabled={updating === r.id} onClick={() => updateStatus(r.id, 'confirmed')}
+                            className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors disabled:opacity-50">
+                            <Icon name="check" size={14}/>
+                          </button>
+                          <button disabled={updating === r.id} onClick={() => updateStatus(r.id, 'cancelled')}
+                            className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors disabled:opacity-50">
+                            <Icon name="x" size={14}/>
+                          </button>
+                        </>
+                      )}
+                      <a href={`tel:${r.phone}`} className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-colors">
+                        <Icon name="phone" size={13}/>
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 items-center">
-                <div>
-                  <p className="text-[14px] font-medium text-gray-900">{r.name}</p>
-                  <p className="text-[12px] text-gray-400">{r.phone}{r.notes ? ` · ${r.notes}` : ''}</p>
-                </div>
-                <div>
-                  <p className="text-[14px] text-gray-700">{r.date}</p>
-                  <p className="text-[12px] text-gray-400">{r.time}</p>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Icon name="users" size={13} className="text-gray-300"/>
-                  <span className="text-[14px] text-gray-700">{r.guests} persoane</span>
-                </div>
-                <ResBadge status={statuses[r.id]}/>
-                <div className="flex items-center gap-1">
-                  {statuses[r.id]==='pending' && (
-                    <>
-                      <button onClick={()=>confirm(r.id)} className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors"><Icon name="check" size={14}/></button>
-                      <button onClick={()=>cancel(r.id)}  className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors"><Icon name="x" size={14}/></button>
-                    </>
-                  )}
-                  <button className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-colors"><Icon name="phone" size={13}/></button>
-                </div>
-              </div>
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ── Meniu CRUD ────────────────────────────────────────────────────────────────
+const EMPTY_ITEM = { name:'', category:'Pizza', description:'', price:'', img:'', available:true, sort_order:0 };
+const CATEGORIES = ['Pizza', 'Paste', 'Antipasti', 'Deserturi', 'Băuturi'];
+
+function ItemModal({ item, onClose, onSaved }) {
+  const [form, setForm] = React.useState(item || EMPTY_ITEM);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError]     = React.useState('');
+  const isNew = !item?.id;
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const save = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.price) { setError('Numele și prețul sunt obligatorii.'); return; }
+    setLoading(true);
+    setError('');
+    const payload = {
+      name: form.name.trim(),
+      category: form.category,
+      description: form.description.trim(),
+      price: parseFloat(form.price),
+      img: form.img.trim(),
+      available: form.available,
+      sort_order: parseInt(form.sort_order) || 0,
+    };
+    let res;
+    if (isNew) {
+      res = await db.from('menu_items').insert([payload]).select().single();
+    } else {
+      res = await db.from('menu_items').update(payload).eq('id', item.id).select().single();
+    }
+    setLoading(false);
+    if (res.error) { setError('Eroare la salvare: ' + res.error.message); return; }
+    onSaved(res.data, isNew);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}/>
+      <div className="relative bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-y-auto max-h-[90vh]">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <p className="font-semibold text-gray-900">{isNew ? 'Produs nou' : 'Editează produs'}</p>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400">
+            <Icon name="x" size={16}/>
+          </button>
+        </div>
+        <form onSubmit={save} className="p-5 space-y-4">
+          {error && <div className="px-3.5 py-3 rounded-xl bg-red-50 text-red-600 text-[13px]">{error}</div>}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">Nume produs *</label>
+              <input value={form.name} onChange={e => set('name', e.target.value)} required
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[14px] bg-gray-50 focus:outline-none focus:border-red-400 focus:bg-white transition-colors"/>
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">Categorie</label>
+              <select value={form.category} onChange={e => set('category', e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[14px] bg-gray-50 focus:outline-none focus:border-red-400 focus:bg-white transition-colors">
+                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">Preț (lei) *</label>
+              <input type="number" min="0" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} required
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[14px] bg-gray-50 focus:outline-none focus:border-red-400 focus:bg-white transition-colors"/>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">Descriere</label>
+              <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[14px] bg-gray-50 focus:outline-none focus:border-red-400 focus:bg-white transition-colors resize-none"/>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">URL imagine</label>
+              <input value={form.img} onChange={e => set('img', e.target.value)} placeholder="https://..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[14px] bg-gray-50 focus:outline-none focus:border-red-400 focus:bg-white transition-colors"/>
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">Ordine afișare</label>
+              <input type="number" min="0" value={form.sort_order} onChange={e => set('sort_order', e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[14px] bg-gray-50 focus:outline-none focus:border-red-400 focus:bg-white transition-colors"/>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button type="button" onClick={() => set('available', !form.available)}
+                className={`relative w-10 h-5 rounded-full transition-colors ${form.available ? 'bg-green-400' : 'bg-gray-200'}`}>
+                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${form.available ? 'left-5' : 'left-0.5'}`}/>
+              </button>
+              <span className="text-[13px] text-gray-600">{form.available ? 'Disponibil' : 'Indisponibil'}</span>
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">Anulează</button>
+            <button type="submit" disabled={loading}
+              className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-medium hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+              {loading ? <><div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent spin"/> Salvează...</> : 'Salvează'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 }
 
-// ── Meniu ─────────────────────────────────────────────────────────────────────
 function Meniu() {
-  const [items, setItems] = React.useState(MENU_ITEMS);
-  const toggle = name => setItems(is => is.map(i => i.name === name ? { ...i, available: !i.available } : i));
-  const cats = [...new Set(items.map(i => i.cat))];
+  const [items, setItems]       = React.useState([]);
+  const [loading, setLoading]   = React.useState(true);
+  const [modal, setModal]       = React.useState(null); // null | 'new' | item obj
+  const [deleting, setDeleting] = React.useState(null);
+  const [toggling, setToggling] = React.useState(null);
+
+  const fetchItems = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await db.from('menu_items').select('*').order('sort_order').order('name');
+    setItems(data || []);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const toggle = async (item) => {
+    setToggling(item.id);
+    const { data } = await db.from('menu_items').update({ available: !item.available }).eq('id', item.id).select().single();
+    if (data) setItems(prev => prev.map(i => i.id === data.id ? data : i));
+    setToggling(null);
+  };
+
+  const deleteItem = async (id) => {
+    if (!window.confirm('Ștergi acest produs din meniu?')) return;
+    setDeleting(id);
+    await db.from('menu_items').delete().eq('id', id);
+    setItems(prev => prev.filter(i => i.id !== id));
+    setDeleting(null);
+  };
+
+  const onSaved = (item, isNew) => {
+    if (isNew) {
+      setItems(prev => [...prev, item].sort((a, b) => (a.sort_order - b.sort_order) || a.name.localeCompare(b.name)));
+    } else {
+      setItems(prev => prev.map(i => i.id === item.id ? item : i));
+    }
+  };
+
+  const cats = [...new Set(items.map(i => i.category))];
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <div className="w-8 h-8 rounded-full border-2 border-orange-500 border-t-transparent spin"/>
+      <p className="text-[14px] text-gray-400">Se încarcă meniul...</p>
+    </div>
+  );
+
   return (
     <div className="space-y-5">
-      {cats.map(cat => (
-        <div key={cat} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-            <p className="font-semibold text-gray-900">{cat}</p>
-            <span className="text-[12px] text-gray-400">{items.filter(i=>i.cat===cat).length} preparate</span>
-          </div>
-          <div className="divide-y divide-gray-50">
-            {items.filter(i => i.cat === cat).map(item => (
-              <div key={item.name} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-400' : 'bg-gray-300'}`}/>
-                  <div>
-                    <p className={`text-[14px] font-medium ${item.available ? 'text-gray-900' : 'text-gray-400 line-through'}`}>{item.name}</p>
-                    <p className="text-[12px] text-gray-400">{item.price} lei</p>
+      {modal && (
+        <ItemModal
+          item={modal === 'new' ? null : modal}
+          onClose={() => setModal(null)}
+          onSaved={onSaved}
+        />
+      )}
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-[13px] text-gray-500">{items.length} produse · {items.filter(i => i.available).length} disponibile</span>
+        </div>
+        <button onClick={() => setModal('new')}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-medium hover:bg-red-700 transition-colors">
+          <Icon name="plus" size={14}/> Adaugă produs
+        </button>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 py-16 flex flex-col items-center gap-3">
+          <Icon name="pizza" size={36} className="text-gray-200"/>
+          <p className="text-[14px] text-gray-400">Niciun produs în meniu.</p>
+          <button onClick={() => setModal('new')} className="mt-2 px-4 py-2 rounded-xl bg-red-600 text-white text-[13px] font-medium hover:bg-red-700 transition-colors">
+            Adaugă primul produs
+          </button>
+        </div>
+      ) : (
+        cats.map(cat => (
+          <div key={cat} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+              <p className="font-semibold text-gray-900">{cat}</p>
+              <span className="text-[12px] text-gray-400">{items.filter(i => i.category === cat).length} preparate</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {items.filter(i => i.category === cat).map(item => (
+                <div key={item.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition-colors gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {item.img ? (
+                      <img src={item.img} alt={item.name} className="w-10 h-10 rounded-xl object-cover flex-none bg-gray-100"/>
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-none">
+                        <Icon name="image" size={16} className="text-gray-300"/>
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className={`text-[14px] font-medium truncate ${item.available ? 'text-gray-900' : 'text-gray-400 line-through'}`}>{item.name}</p>
+                      <p className="text-[12px] text-gray-400">{item.price} lei{item.description ? ` · ${item.description.slice(0, 40)}${item.description.length > 40 ? '…' : ''}` : ''}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-none">
+                    {!item.available && <span className="hidden sm:inline text-[11px] bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-medium">Epuizat</span>}
+                    <button onClick={() => toggle(item)} disabled={toggling === item.id}
+                      className={`relative w-10 h-5 rounded-full transition-colors disabled:opacity-50 ${item.available ? 'bg-green-400' : 'bg-gray-200'}`}>
+                      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${item.available ? 'left-5' : 'left-0.5'}`}/>
+                    </button>
+                    <button onClick={() => setModal(item)}
+                      className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-blue-50 hover:text-blue-500 transition-colors">
+                      <Icon name="edit" size={13}/>
+                    </button>
+                    <button onClick={() => deleteItem(item.id)} disabled={deleting === item.id}
+                      className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50">
+                      <Icon name="trash" size={13}/>
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {!item.available && <span className="text-[11px] bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-medium">Epuizat</span>}
-                  <button onClick={() => toggle(item.name)} className={`relative w-10 h-5 rounded-full transition-colors ${item.available ? 'bg-green-400' : 'bg-gray-200'}`}>
-                    <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${item.available ? 'left-5' : 'left-0.5'}`}/>
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      )}
     </div>
   );
 }
@@ -586,32 +871,72 @@ function Setari() {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 function App() {
-  const [page, setPage] = React.useState('overview');
+  const [session, setSession]   = React.useState(undefined); // undefined = loading
+  const [page, setPage]         = React.useState('overview');
   const [sideOpen, setSideOpen] = React.useState(false);
-  const [orders, setOrders] = React.useState([]);
+  const [orders, setOrders]     = React.useState([]);
+  const [reservations, setReservations] = React.useState([]);
 
-  const pendingRes = RESERVATIONS.filter(r => r.status === 'pending').length;
-  const newOrders  = orders.filter(o => o.status === 'nouă').length;
-
-  // Încarcă comenzile pentru badge și overview
+  // Check auth on mount
   React.useEffect(() => {
-    db.from('orders').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => setOrders(data || []));
-
-    const channel = db.channel('app-orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-        db.from('orders').select('*').order('created_at', { ascending: false })
-          .then(({ data }) => setOrders(data || []));
-      })
-      .subscribe();
-
-    return () => db.removeChannel(channel);
+    db.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: { subscription } } = db.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => subscription.unsubscribe();
   }, []);
 
-  const titles = { overview:'Bună ziua! 👋', comenzi:'Comenzi Online', rezervari:'Rezervări', meniu:'Gestionare Meniu', setari:'Setări' };
-  const subs   = { overview:'Ce se întâmplă azi la La Forno.', comenzi:'Comenzi primite prin site — actualizare în timp real.', rezervari:'Gestionați și confirmați rezervările.', meniu:'Activați sau dezactivați preparate.', setari:'Configurați restaurantul.' };
+  // Load orders + reservations for badges and overview (only when authenticated)
+  React.useEffect(() => {
+    if (!session) return;
 
-  const Sidebar = ({ mobile = false }) => (
+    const loadOrders = () =>
+      db.from('orders').select('*').order('created_at', { ascending: false })
+        .then(({ data }) => setOrders(data || []));
+
+    const loadReservations = () =>
+      db.from('reservations').select('*').order('date').order('time')
+        .then(({ data }) => setReservations(data || []));
+
+    loadOrders();
+    loadReservations();
+
+    const ch1 = db.channel('app-orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, loadOrders)
+      .subscribe();
+
+    const ch2 = db.channel('app-reservations')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, loadReservations)
+      .subscribe();
+
+    return () => { db.removeChannel(ch1); db.removeChannel(ch2); };
+  }, [session]);
+
+  const logout = async () => {
+    await db.auth.signOut();
+    setPage('overview');
+    setOrders([]);
+    setReservations([]);
+  };
+
+  // Still checking session
+  if (session === undefined) return (
+    <div className="min-h-screen flex items-center justify-center" style={{background:'#f5f5f0'}}>
+      <div className="w-8 h-8 rounded-full border-2 border-red-500 border-t-transparent spin"/>
+    </div>
+  );
+
+  // Not logged in
+  if (!session) return <Login onLogin={setSession}/>;
+
+  const pendingRes = reservations.filter(r => (r.status || 'pending') === 'pending').length;
+  const newOrders  = orders.filter(o => o.status === 'nouă').length;
+
+  const userEmail = session.user?.email || '';
+  const initials  = userEmail.slice(0, 2).toUpperCase();
+
+  const titles = { overview:'Bună ziua! 👋', comenzi:'Comenzi Online', rezervari:'Rezervări', meniu:'Gestionare Meniu', setari:'Setări' };
+  const subs   = { overview:'Ce se întâmplă azi la La Forno.', comenzi:'Comenzi primite prin site — actualizare în timp real.', rezervari:'Gestionați și confirmați rezervările.', meniu:'Adaugă, editează sau dezactivează preparate.', setari:'Configurați restaurantul.' };
+
+  const SidebarContent = ({ mobile = false }) => (
     <aside className={`${mobile ? 'w-64' : 'hidden lg:flex w-56 xl:w-60'} flex-col bg-white border-r border-gray-100 min-h-screen sticky top-0 h-screen`}>
       <div className="p-5 border-b border-gray-100">
         <span className="text-xl font-medium" style={{ color:'#c0392b', fontFamily:"'Playfair Display',serif" }}>La Forno</span>
@@ -629,20 +954,22 @@ function App() {
         ))}
       </nav>
       <div className="p-3 border-t border-gray-100">
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 cursor-pointer">
-          <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-[11px] font-bold text-red-600">DC</div>
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 group">
+          <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-[11px] font-bold text-red-600 flex-none">{initials}</div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-medium text-gray-800 truncate">Dogaru Catalin</p>
+            <p className="text-[13px] font-medium text-gray-800 truncate">{userEmail}</p>
             <p className="text-[11px] text-gray-400">Administrator</p>
           </div>
-          <Icon name="logout" size={14} className="text-gray-300"/>
+          <button onClick={logout} title="Deconectare" className="text-gray-300 hover:text-red-500 transition-colors">
+            <Icon name="logout" size={14}/>
+          </button>
         </div>
       </div>
     </aside>
   );
 
   const pages = {
-    overview:  <Overview setPage={setPage} orders={orders}/>,
+    overview:  <Overview setPage={setPage} orders={orders} reservations={reservations}/>,
     comenzi:   <Comenzi/>,
     rezervari: <Rezervari/>,
     meniu:     <Meniu/>,
@@ -651,11 +978,11 @@ function App() {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar/>
+      <SidebarContent/>
       {sideOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/40" onClick={() => setSideOpen(false)}/>
-          <div className="relative z-10"><Sidebar mobile/></div>
+          <div className="relative z-10"><SidebarContent mobile/></div>
         </div>
       )}
       <div className="flex-1 flex flex-col min-w-0">
@@ -674,7 +1001,9 @@ function App() {
               <Icon name="bell" size={17} className="text-gray-500"/>
               {(newOrders > 0 || pendingRes > 0) && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500"/>}
             </button>
-            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-[11px] font-bold text-red-600">DC</div>
+            <button onClick={logout} title="Deconectare" className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-[11px] font-bold text-red-600 hover:bg-red-200 transition-colors">
+              {initials}
+            </button>
           </div>
         </header>
         <main className="flex-1 p-5 md:p-8 overflow-auto">
