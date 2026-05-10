@@ -77,9 +77,11 @@ const NAV = [
 ];
 
 const ORD_STATUS = {
-  'nouă':      { label:'Nouă',      bg:'bg-blue-50',  text:'text-blue-700',  dot:'bg-blue-500'  },
-  'în proces': { label:'În proces', bg:'bg-amber-50', text:'text-amber-700', dot:'bg-amber-400' },
-  'livrată':   { label:'Livrată',   bg:'bg-green-50', text:'text-green-700', dot:'bg-green-500' },
+  'nouă':              { label:'Nouă',              bg:'bg-blue-50',   text:'text-blue-700',  dot:'bg-blue-500'  },
+  'în preparare':      { label:'În preparare',      bg:'bg-amber-50',  text:'text-amber-700', dot:'bg-amber-400' },
+  'gata de livrare':   { label:'Gata de livrare',   bg:'bg-purple-50', text:'text-purple-700', dot:'bg-purple-500' },
+  'în livrare':        { label:'În livrare',        bg:'bg-orange-50', text:'text-orange-700', dot:'bg-orange-500' },
+  'livrată':           { label:'Livrată',           bg:'bg-green-50',  text:'text-green-700', dot:'bg-green-500' },
 };
 const RES_STATUS = {
   confirmed: { label:'Confirmată',   bg:'bg-green-50', text:'text-green-700', dot:'bg-green-500' },
@@ -311,10 +313,12 @@ function Comenzi() {
   const totalVenit = orders.reduce((s, o) => s + (o.total || 0), 0);
 
   const statusFilters = [
-    ['all',       'Toate',     orders.length],
-    ['nouă',      'Noi',       orders.filter(o => o.status === 'nouă').length],
-    ['în proces', 'În proces', orders.filter(o => o.status === 'în proces').length],
-    ['livrată',   'Livrate',   orders.filter(o => o.status === 'livrată').length],
+    ['all',              'Toate',            orders.length],
+    ['nouă',             'Noi',              orders.filter(o => o.status === 'nouă').length],
+    ['în preparare',     'În preparare',     orders.filter(o => o.status === 'în preparare').length],
+    ['gata de livrare',  'Gata de livrare',  orders.filter(o => o.status === 'gata de livrare').length],
+    ['în livrare',       'În livrare',       orders.filter(o => o.status === 'în livrare').length],
+    ['livrată',          'Livrate',          orders.filter(o => o.status === 'livrată').length],
   ];
 
   if (loading) return (
@@ -386,12 +390,24 @@ function Comenzi() {
                 <div className="flex items-center gap-2">
                   <div className="hidden sm:flex gap-1" onClick={e => e.stopPropagation()}>
                     {order.status === 'nouă' && (
-                      <button onClick={() => updateStatus(order.id, 'în proces')} disabled={updating === order.id}
+                      <button onClick={() => updateStatus(order.id, 'în preparare')} disabled={updating === order.id}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-medium hover:bg-amber-100 transition-colors disabled:opacity-50">
-                        <Icon name="clock" size={12}/> În proces
+                        <Icon name="clock" size={12}/> În preparare
                       </button>
                     )}
-                    {order.status === 'în proces' && (
+                    {order.status === 'în preparare' && (
+                      <button onClick={() => updateStatus(order.id, 'gata de livrare')} disabled={updating === order.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 text-[11px] font-medium hover:bg-purple-100 transition-colors disabled:opacity-50">
+                        <Icon name="check" size={12}/> Gata de livrare
+                      </button>
+                    )}
+                    {order.status === 'gata de livrare' && (
+                      <button onClick={() => updateStatus(order.id, 'în livrare')} disabled={updating === order.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 text-[11px] font-medium hover:bg-orange-100 transition-colors disabled:opacity-50">
+                        <Icon name="truck" size={12}/> Curier trimis
+                      </button>
+                    )}
+                    {order.status === 'în livrare' && (
                       <button onClick={() => updateStatus(order.id, 'livrată')} disabled={updating === order.id}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-[11px] font-medium hover:bg-green-100 transition-colors disabled:opacity-50">
                         <Icon name="check" size={12}/> Livrată
@@ -452,17 +468,29 @@ function Comenzi() {
                       <span className="text-[15px] font-bold text-red-600">{order.total} lei</span>
                     </div>
                   </div>
-                  <div className="sm:hidden flex gap-2" onClick={e => e.stopPropagation()}>
+                  <div className="sm:hidden flex gap-2 flex-col" onClick={e => e.stopPropagation()}>
                     {order.status === 'nouă' && (
-                      <button onClick={() => updateStatus(order.id, 'în proces')} disabled={updating === order.id}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-[12px] font-medium hover:bg-amber-100 transition-colors disabled:opacity-50">
-                        <Icon name="clock" size={14}/> Marchează „În proces"
+                      <button onClick={() => updateStatus(order.id, 'în preparare')} disabled={updating === order.id}
+                        className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-[12px] font-medium hover:bg-amber-100 transition-colors disabled:opacity-50">
+                        <Icon name="clock" size={14}/> În preparare
                       </button>
                     )}
-                    {order.status === 'în proces' && (
+                    {order.status === 'în preparare' && (
+                      <button onClick={() => updateStatus(order.id, 'gata de livrare')} disabled={updating === order.id}
+                        className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-purple-50 text-purple-700 text-[12px] font-medium hover:bg-purple-100 transition-colors disabled:opacity-50">
+                        <Icon name="check" size={14}/> Gata de livrare
+                      </button>
+                    )}
+                    {order.status === 'gata de livrare' && (
+                      <button onClick={() => updateStatus(order.id, 'în livrare')} disabled={updating === order.id}
+                        className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-orange-50 text-orange-700 text-[12px] font-medium hover:bg-orange-100 transition-colors disabled:opacity-50">
+                        <Icon name="truck" size={14}/> Curier trimis
+                      </button>
+                    )}
+                    {order.status === 'în livrare' && (
                       <button onClick={() => updateStatus(order.id, 'livrată')} disabled={updating === order.id}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-green-50 text-green-700 text-[12px] font-medium hover:bg-green-100 transition-colors disabled:opacity-50">
-                        <Icon name="check" size={14}/> Marchează „Livrată"
+                        className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-green-50 text-green-700 text-[12px] font-medium hover:bg-green-100 transition-colors disabled:opacity-50">
+                        <Icon name="check" size={14}/> Livrată
                       </button>
                     )}
                   </div>
