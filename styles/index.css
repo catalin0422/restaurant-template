@@ -1,0 +1,124 @@
+/* ── Reset ────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;}
+
+/* ── Tokens ───────────────────────────────────────────────────── */
+:root{
+  --red:#c0392b;
+  --red-light:#e74c3c;
+  --cream:#faf8f5;
+  --warm:#f0ebe4;
+  --text:#1a1a1a;
+  --muted:#6b6060;
+  --border:#e8e0d8;
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+html{
+  scroll-behavior:smooth;
+  background:#fff;
+  color:var(--text);
+  overflow-x:hidden; /* must be on html too — body alone doesn't stop iOS scroll */
+  max-width:100%;
+}
+body{
+  font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background:#fff;
+  overflow-x:hidden;
+  max-width:100%;
+}
+
+/* ── Font helpers ─────────────────────────────────────────────── */
+.font-display{font-family:'Playfair Display',ui-serif,Georgia,serif;}
+.font-hero{font-family:'Bebas Neue',sans-serif;}
+.font-script{font-family:'Great Vibes',cursive;}
+
+/* ── Scrollbar (desktop only) ─────────────────────────────────── */
+@media(min-width:768px){
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:#fff;}
+  ::-webkit-scrollbar-thumb{background:#e0d8d0;border-radius:8px;}
+}
+
+/* ── Reveal ───────────────────────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1);}
+.reveal.in{opacity:1;transform:none;}
+section{scroll-margin-top:64px;}
+
+/* ── Animations ───────────────────────────────────────────────── */
+@keyframes heroSlideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes heroFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pizzaDrop{from{opacity:0;transform:translateX(-50%) translateY(-60px) scale(.9)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+
+.hero-pizza{animation:pizzaDrop 1.1s cubic-bezier(.2,.8,.2,1) forwards;}
+.hero-line1{animation:heroSlideUp .9s .1s cubic-bezier(.2,.8,.2,1) both;}
+.hero-line2{animation:heroSlideUp .9s .25s cubic-bezier(.2,.8,.2,1) both;}
+.hero-script{animation:heroFadeIn 1.2s .6s ease both;}
+.hero-anim{animation:fadeIn .9s ease forwards;}
+.hero-anim-2{animation:fadeIn 1.1s .2s ease both;}
+.hero-anim-3{animation:fadeIn 1.1s .4s ease both;}
+
+.hero-bottom{
+  animation:heroSlideUp .9s .45s cubic-bezier(.2,.8,.2,1) both;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:end;
+  gap:16px;
+}
+
+/* ── Forms ────────────────────────────────────────────────────── */
+input,select,textarea{font-family:inherit;}
+input:focus,select:focus,textarea:focus{outline:none;}
+
+/* ── Touch improvements ───────────────────────────────────────── */
+button,a{-webkit-tap-highlight-color:transparent;}
+button{touch-action:manipulation;}
+
+/* ── Mobile (≤ 768px) ─────────────────────────────────────────── */
+@media(max-width:768px){
+  /* Prevent iOS Safari zoom-on-focus */
+  input,select,textarea{font-size:16px !important;}
+
+  section{scroll-margin-top:56px;}
+
+  /* Clip any accidental overflow inside sections */
+  section, main, footer, header{max-width:100vw;}
+}
+
+/* ── Mobile hero (≤ 479px) ────────────────────────────────────── */
+@media(max-width:479px){
+  /* Hero bottom row → single column */
+  .hero-bottom{grid-template-columns:1fr;row-gap:16px;}
+  .hero-bottom-btn{justify-self:start;}
+
+  /* Pizza bleeds less so it doesn't push layout */
+  .hero-pizza{top:-40px !important;width:min(260px,70vw) !important;}
+
+  /* Script text — allow wrapping and clip overflow */
+  .hero-script{
+    font-size:clamp(22px,7.5vw,34px) !important;
+    white-space:normal !important;
+    overflow:hidden !important;
+    max-width:80% !important;
+    top:22% !important;
+  }
+}
+
+@media(max-width:360px){
+  .hero-script{font-size:20px !important;}
+  .hero-pizza{width:min(240px,72vw) !important;}
+}
+
+/* ── Safe area (notched phones) ───────────────────────────────── */
+@supports(padding-bottom:env(safe-area-inset-bottom)){
+  footer{padding-bottom:calc(2rem + env(safe-area-inset-bottom));}
+}
+
+/* ── Reduced motion ───────────────────────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  .reveal{transition:none;}
+  .hero-pizza,.hero-line1,.hero-line2,.hero-script,
+  .hero-bottom,.hero-anim,.hero-anim-2,.hero-anim-3{animation:none;opacity:1;transform:none;}
+}
